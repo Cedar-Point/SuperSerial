@@ -9,9 +9,6 @@ namespace SuperSerial
 {
     static class Program
     {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main(string[] parameters)
         {
@@ -54,32 +51,34 @@ namespace SuperSerial
             }
             catch (Exception) { }
         }
-
         private static void Lane_DeviceAttached(object sender, EventArgs e)
         {
             Console.WriteLine("Found a device! Reading Data...");
             MsrDeviceLane lane = (MsrDeviceLane)sender;
-            Console.WriteLine("AppProduct: " + lane.Device.Properties.AppProduct);
-            Console.WriteLine("AppSerialNumber: " + lane.Device.Properties.AppSerialNumber);
-            Console.WriteLine("AppSerialNumber2: " + lane.Device.Properties.AppSerialNumber2);
+            IMsrDeviceInstance device = lane.GetCurrentDevice();
+            Console.WriteLine("AppProduct: " + device.Properties.AppProduct);
+            Console.WriteLine("AppSerialNumber: " + device.Properties.AppSerialNumber);
+            Console.WriteLine("AppSerialNumber2: " + device.Properties.AppSerialNumber2);
             try
             {
                 RegistryKey regKey32 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry32).CreateSubKey(@"SOFTWARE\SuperSerial", true);
-                regKey32.SetValue("AppProduct", lane.Device.Properties.AppProduct);
-                regKey32.SetValue("AppSerialNumber", lane.Device.Properties.AppSerialNumber);
-                regKey32.SetValue("AppSerialNumber2", lane.Device.Properties.AppSerialNumber2);
+                regKey32.SetValue("AppProduct", device.Properties.AppProduct);
+                regKey32.SetValue("AppSerialNumber", device.Properties.AppSerialNumber);
+                regKey32.SetValue("AppSerialNumber2", device.Properties.AppSerialNumber2);
                 regKey32.Close();
             }
             catch (Exception) { }
             try
             {
                 RegistryKey regKey64 = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, RegistryView.Registry64).CreateSubKey(@"SOFTWARE\SuperSerial", true);
-                regKey64.SetValue("AppProduct", lane.Device.Properties.AppProduct);
-                regKey64.SetValue("AppSerialNumber", lane.Device.Properties.AppSerialNumber);
-                regKey64.SetValue("AppSerialNumber2", lane.Device.Properties.AppSerialNumber2);
+                regKey64.SetValue("AppProduct", device.Properties.AppProduct);
+                regKey64.SetValue("AppSerialNumber", device.Properties.AppSerialNumber);
+                regKey64.SetValue("AppSerialNumber2", device.Properties.AppSerialNumber2);
                 regKey64.Close();
             }
             catch (Exception) { }
+            Console.WriteLine("Rebooting Device...");
+            device.Reboot();
             Process.GetCurrentProcess().Kill();
         }
     }
